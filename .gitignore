@@ -1,0 +1,13 @@
+.cache
+.config
+.npm
+.ssh
+.vscode-server
+.bash_history
+.bash_logout
+.bashrc
+.profile
+.viminfo
+.wget-hsts
+
+cw
