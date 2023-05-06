@@ -1,55 +1,34 @@
-#!/usr/bin/node
+const child_process = require('child_process');
+const express = require('express');
+const path = require('path');
 
-const proc = require("child_process")
-const http = require("http");
-const fs = require("fs");
+const PORT = process.env.PORT || 20150
+const CHILD_PORT = parseInt(PORT) + 1
+const SLAVE_FILE = './slave.js';
+const PUBLIC_DIR = '/public/'
 
-const port = process.env.PORT || 20151
-const argv = process.argv
-const argc = argv.length
+const cp = child_process.fork(SLAVE_FILE, [CHILD_PORT]);
 
-// create server
-const server = http.createServer((req, res) => {
-    if (req.url === "/index.html") {
-        // serve code.html file
-        fs.readFile("code.html", (err, data) => {
-            if (err) {
-                res.writeHead(500, { "Content-Type": "text/plain" });
-                res.end("500 Internal Server Error");
-            } else {
-                res.writeHead(200, { "Content-Type": "text/html" });
-                res.end(data);
-            }
-        });
-    }
+app = express();
+
+const send2child = async (fileName) => {
+    cp.send({ fileName: fileName });
+};
+
+app.get('/', (_request, response) => {
+    const fileName = path.join(PUBLIC_DIR, 'index.html');
+    send2child(fileName);
+    response.sendFile(fileName);
 });
-// listen on port
-server.listen(20150, () => {
-    console.log(`Server running at`);
+
+app.get('/*.html', (request, response) => {
+    const fileName = path.join(PUBLIC_DIR, request.path);
+    send2child(fileName);
+    response.sendFile(fileName);
 });
-if (argc < 3) {
-    console.log("Nie podano nazwy skryptu do uruchomienia")
-}
-else for (var i = 2, p = 20151; i < argc; i++, p++) {
-    const child = proc.fork(`./${argv[i]}`, [p])
-    child.on('data', (data) => {
-        console.log(`${data}`)
-    });
 
-    setInterval(() => {
-        child.send({ hello: "Message from the dispatcher!" })
-        console.log("message sent");
-    }, 5000);
+app.use(express.static(PUBLIC_DIR));
 
-    setInterval(() => {
-        child.send({ hello: "I'm doing my part!" })
-        console.log("message sent");
-    }, 4000);
-
-    child.on('error', (data) => {
-        console.error(`stderr: ${data}`);
-    })
-    child.on('close', (code) => {
-        console.log(`child process exited with code ${code}`)
-    })
-}
+app.listen(PORT, () => {
+    console.log(`Listening on port ${PORT}`);
+});

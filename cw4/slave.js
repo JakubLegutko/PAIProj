@@ -1,20 +1,23 @@
 #!/usr/bin/node
-const me = process.argv[1]
+const express = require("express")
+
 const port = process.argv[2] || process.env.PORT || 3000
+const PUBLIC_DIR = '/public/'
 
-const http = require("http")
+let fileToDisplay = '/public/index.html';
+const app = express();
 
-const server = http.createServer(handler)
-var content = `Server ${me} on port ${port}`
-
-server.listen(port, function () {
-    console.log(content + " is running...")
-})
-
-process.on('message', ({ hello }) => {
-    content = (`${me} received: ${hello}`);
+process.on('message', ({ fileName }) => {
+    console.log(`Slave is displaying ${fileName}...`);
+    fileToDisplay = `${fileName}`;
 });
 
-function handler(req, res) {
-    res.end(content)
-}
+app.get("/", (_request, response) => {
+    response.sendFile(fileToDisplay);
+});
+
+app.use(express.static(PUBLIC_DIR));
+
+app.listen(port, () => {
+    console.log(`The slave server is running on port ${port}`)
+});
