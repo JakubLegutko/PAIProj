@@ -1,0 +1,36 @@
+{
+    nextPage: 'https://data.bn.org.pl/api/networks/bibs.json?isbnIssn=1234567890&sinceId=50220875',
+    bibs: [
+      {
+        id: 50220874,
+        zone: 'network',
+        createdDate: '2008-10-14T12:00:00.000Z',
+        updatedDate: '2021-11-24T18:43:44.000Z',
+        deleted: false,
+        deletedDate: null,
+        language: 'polski',
+        subject: 'Rzeźba Park Śląski (Chorzów, województwo śląskie, Polska)',
+        subjectPlace: '',
+        subjectTime: '',
+        subjectWork: '',
+        isbnIssn: '9788360879207 1234567890',
+        author: 'Jarosz-Jałowiecka, Hanka (19..-2017).',
+        placeOfPublication: 'Katowice : Polska',
+        location: '1 1',
+        title: 'Rzeźby w Wojewódzkim Parku Kultury i Wypoczynku /',
+        udc: '',
+        publisher: 'Fundacja dla Śląska,',
+        kind: 'książka',
+        domain: '',
+        formOfWork: 'Książki',
+        genre: '',
+        timePeriodOfCreation: '',
+        audienceGroup: '',
+        demographicGroup: '',
+        nationalBibliographyNumber: '',
+        publicationYear: '2007',
+        languageOfOriginal: 'polski',
+        marc: [Object]
+      }
+    ]
+  }

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/a15/static/chat-room.png" type="image/png">
+    <link rel="stylesheet" href="/a15/static/style.css">
+    <title>Chat</title>
+</head>
+
+<body>
+    <div class="container">
+        <form id="form" >
+            <label for="message">Message:</label>
+            <input type="text" autofocus id="message" name="message" required>
+            <button name="intent" value="save">Send</button>
+        </form>
+        <div class="messages">
+            {{#if empty}}
+                <h3>No messages here...🤷</h3>
+            {{else}}
+                {{loader}}
+            {{/if}}
+        </div>
+    </div>
+    <script defer>
+let form = document.getElementById('form');
+form.onsubmit = function (e) {
+    fetch('{{endpoint}}/form/', {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ message: document.getElementById("message").value }),
+    });
+
+    return false;
+};
+
+setInterval(refreshMessages, 1000);
+
+async function refreshMessages() {
+    try {
+        const response = await fetch('{{endpoint}}/entries');
+        if (!response.ok) {
+            throw new Error(`Error! message: ${response.status}`);
+        }
+        const result = await response.json();
+        const html = [];
+        result.forEach(function(entry) {
+            html.push(`<div class="entry"><div class="meta"><span class="date">${entry.date}</span><div class="who"><span class="user">${entry.user}</span>@<span class="host">${entry.host}</span></div></div><span class="message">${entry.message}</span></div><hr>`);
+        });
+        html[html.length - 1] = html[html.length - 1].slice(0, -4);
+        document.querySelector('.messages').innerHTML = html.join('\n');
+    } catch (error) {
+        console.error(error);
+    }
+};
+    </script>
+</body>
+
+</html>

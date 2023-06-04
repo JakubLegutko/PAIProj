@@ -1,0 +1,63 @@
+:root {
+    --bg: rgb(32, 32, 32);
+    --bg-low: rgb(255, 255, 255, 0.1);
+    --date: rgba(255, 255, 255, 0.2);
+    --host: rgba(0, 255, 0, 0.8);
+    --user: rgba(0, 255, 0, 0.8);
+    --message: rgba(255, 255, 255, 0.7);
+}
+
+body {
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--bg);
+    color: var(--message)
+}
+
+.date {
+    color: var(--date);
+}
+
+.host {
+    color: var(--host);
+}
+
+.meta {
+    display: flex;
+    flex-direction: column;
+    padding-right: 1rem;
+}
+
+.message {
+    background-color: white;
+    color: var(--bg);
+    border-radius: 5%;
+    padding: 0.5rem;
+    font-size: x-large;
+}
+
+.entry {
+    display: flex;
+    margin: 0.5rem;
+}
+
+.container {
+    padding: 2rem;
+    display: grid;
+    place-items: center;
+}
+
+hr {
+    opacity: 0.5;
+}
+
+.messages {
+    margin-top: 2rem;
+    justify-content: left;
+    background-color: var(--bg-low);
+}
+
+* {
+    margin: 0px;
+    padding: 0px;
+}
