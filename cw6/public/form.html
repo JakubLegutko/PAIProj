@@ -1,34 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ISBN Form</title>
 </head>
+
 <body>
-    <form className="form" onSubmit={handleSubmit}>
-        <label>
-            <input
-            type="text"
-            placeholder="Username"
-            autoFocus
-            />
+    <form class="form" onsubmit="sendForm(this)">
+        <label for="isbn">
+            <input id="isbn" name="isbn" type="text" placeholder="ISBN" autoFocus />
         </label>
-        <label>
-            <input
-            type="password"
-            placeholder="Password"
-            />
-        </label>
-        <div className="buttons">
-            <button id="submit" className="button" type="submit">
-            Log in
-            </button>
-            <Link id="re-route" className="button" to="/register">
-            Register
-            </Link>
-        </div>
+        <input type="submit" value="Submit">
     </form>
 </body>
+
+<script>
+    async function sendForm(form) {
+        form.action = '/20150';
+        let isbn = document.querySelector('#isbn').value;
+        const response = await fetch("http://149.156.43.57/20150/sync/", {
+            method: "POST",
+            cache: "no-cache",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ "isbn": isbn }),
+        });
+    }
+</script>
+
 </html>

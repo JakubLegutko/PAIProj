@@ -1,11 +1,13 @@
-const express = require('express');
-const bodyParser = require('body-parser');
 const axios = require('axios');
+const hbs = require('handlebars');
+const express = require('express');
 const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
 
 const app = express();
 app.use(bodyParser.json());
 app.use(express.static('public'));
+app.set('view engine', 'hbs');
 const PORT = 20150;
 const apiUrl = "https://data.bn.org.pl/api/networks";
 const clear = false;
@@ -35,7 +37,7 @@ if (clear) {
 }
 // Define bookSchema with auto-incrementing myID
 const bookSchema = new mongoose.Schema({
-  myID : {type : Number, unique : true},
+  myID: { type: Number, unique: true },
   title: String,
   authorName: String,
   authorSurnameAndAlive: String,
@@ -52,7 +54,7 @@ const bookSchema = new mongoose.Schema({
 
 // Define authorSchema with auto-incrementing myID
 const authorSchema = new mongoose.Schema({
-  myID : {type: Number, unique : true},
+  myID: { type: Number, unique: true },
   authorName: String,
   authorSurnameAndAlive: String,
 });
@@ -92,9 +94,65 @@ authorSchema.pre('save', async function (next) {
 const Book = mongoose.model('Book', bookSchema);
 const Author = mongoose.model('Author', authorSchema);
 
-// Fetch existing books from the database
 app.get('/', async (req, res) => {
-  res.sendFile(__dirname + '/form.html');
+  res.sendFile(__dirname + '/public/index.html');
+});
+
+// Form to add a book by its ISBN
+app.get('/books/add', async (req, res) => {
+  res.sendFile(__dirname + '/public/form.html');
+});
+
+// Browse stored books
+app.get('/authors/browse', async (req, res) => {
+  const authors = await Author.find();
+  res.render('authorsList', {
+    authors: authors
+  })
+});
+
+// Browse stored books of a given author
+app.get('/authors/:authorId/browse', async (req, res) => {
+  const { authorId } = req.params;
+
+  // Find the author by ID
+  const author = await Author.findOne({ myID: authorId });
+
+  if (!author) {
+    return res.status(404).json({ error: 'Author not found' });
+  }
+  const authorName = author.authorName;
+  // Find all books by the author
+  const books = await Book.find({ authorName: authorName });
+  res.render('booksOfAuthor', {
+    authorName: authorName,
+    books: books,
+  })
+});
+
+// Browse stored books
+app.get('/books/:bookId/details', async (req, res) => {
+  const { bookId } = req.params;
+  const book = await Book.findOne({ myID: bookId }).exec();
+  res.render('bookDetails', {
+    myID: book.myID,
+    title: book.title,
+    authorName: book.authorName,
+    language: book.language,
+    publicationYear: book.publicationYear,
+    isbnissn: book.isbnissn,
+  })
+});
+
+
+// Browse stored books
+app.get('/authors/browse', async (req, res) => {
+  res.sendFile(__dirname + '/public/authors.html');
+});
+
+// Browse stored books
+app.get('/authors/browse', async (req, res) => {
+  res.sendFile(__dirname + '/public/authors.html');
 });
 
 // Fetch existing books from the database
@@ -113,7 +171,7 @@ app.get('/books/:bookId', async (req, res) => {
 // Fetch a specific author by their ID
 app.get('/authors/:authorId', async (req, res) => {
   const { authorId } = req.params;
-  const author = await Author.findOne({myID : authorId }).exec();
+  const author = await Author.findOne({ myID: authorId }).exec();
   res.json(author);
 });
 
@@ -134,7 +192,7 @@ app.get('/authors/:authorId/books', async (req, res) => {
     }
     const authorName = author.authorName;
     // Find all books by the author
-    const books = await Book.find({authorName: authorName }).select('title');
+    const books = await Book.find({ authorName: authorName }).select('title');
 
     res.json(books);
   } catch (error) {
@@ -143,10 +201,9 @@ app.get('/authors/:authorId/books', async (req, res) => {
   }
 });
 
-app.get('/sync', async (req, res) => {
+app.post('/sync', async (req, res) => {
   try {
-    const { isbn } = req.query;
-    console.log(isbn);
+    const { isbn } = req.body;
     if (!isbn) {
       return res.status(400).json({ error: 'Numer ISBN jest wymagany' });
     }
@@ -159,23 +216,41 @@ app.get('/sync', async (req, res) => {
       return res.status(404).json({ error: 'Nie znaleziono rekordu bibliograficznego' });
     }
 
-    // Save the record to the database
-    const book = new Book({
-      title: bookData.bibs[0].title,
-      authorName: bookData.bibs[0].author,
-      authorSurnameAndAlive: bookData.bibs[0].author,
-      bookID: bookData.bibs[0].id,
-      language: bookData.bibs[0].language,
-      subject: bookData.bibs[0].subject,
-      isbnissn: bookData.bibs[0].isbnIssn,
-      publicationYear: bookData.bibs[0].publicationYear
-    });
-    const author = new Author({
-      authorName: bookData.bibs[0].author,
-      authorSurnameAndAlive: bookData.bibs[0].author
-    });
-    await book.save();
-    await author.save();
+    // Check if they're not already there before adding
+    const bookTitles = (await Book.find().select('title')).map(element => element.title);
+    console.log(bookTitles);
+    console.log(bookData.bibs[0].title);
+    console.log(bookTitles.includes(bookData.bibs[0].title));
+
+    if (!(bookTitles.includes(bookData.bibs[0].title))) {
+      // Save the record to the database
+      const book = new Book({
+        title: bookData.bibs[0].title,
+        authorName: bookData.bibs[0].author,
+        authorSurnameAndAlive: bookData.bibs[0].author,
+        bookID: bookData.bibs[0].id,
+        language: bookData.bibs[0].language,
+        subject: bookData.bibs[0].subject,
+        isbnissn: bookData.bibs[0].isbnIssn,
+        publicationYear: bookData.bibs[0].publicationYear
+      });
+      await book.save();
+    }
+
+    // Check if they're not already there before adding
+    const authorNames = (await Author.find().select('authorName')).map(element => element.authorName);
+    console.log(authorNames);
+    console.log(bookData.bibs[0].author);
+    console.log(authorNames.includes(bookData.bibs[0].author));
+
+    if (!(authorNames.includes(bookData.bibs[0].author))) {
+      // Save the record to the database
+      const author = new Author({
+        authorName: bookData.bibs[0].author,
+        authorSurnameAndAlive: bookData.bibs[0].author
+      });
+      await author.save();
+    }
     res.json({ message: 'Książka została dodana do bazy danych' });
   } catch (error) {
     console.error('Błąd podczas dodawania książki:', error);

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authors</title>
+</head>
+<body>
+    <ul>
+        {{#each authors}}
+            <li><a href="/20150/authors/{{this.myID}}/browse">{{this.authorName}}</a></li>
+        {{/each}}
+    </ul>
+</body>
+</html>
